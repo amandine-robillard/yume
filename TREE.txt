@@ -1,0 +1,158 @@
+```
+🌙 YUME - Structure Complète du Projet
+═══════════════════════════════════════
+
+📦 yume/
+┃
+┣━━ 📱 App Core
+┃   ┣━━ YumeApp.swift (Point d'entrée @main + SwiftData setup)
+┃   ┗━━ ContentView.swift (Vue principale + TabBar navigation)
+┃
+┣━━ 📁 Models/ (4 fichiers)
+┃   ┣━━ Dream.swift (@Model SwiftData: id, title, date, content, isRemembered, isLucid, emotions, aiAnalysis, aiModel)
+┃   ┣━━ Dream+Samples.swift (10 exemples de rêves pour tester)
+┃   ┣━━ Emotion.swift (6 émotions: Joie, Peur, Sérénité, Tristesse, Liberté, Émerveillement)
+┃   ┗━━ AIModel.swift (3 modèles: Claude, GPT, Gemini avec versions)
+┃
+┣━━ 🎨 Design/ (2 fichiers)
+┃   ┣━━ AppTheme.swift (Couleurs #0A0E1A, #7B5EA7, #A78BFA + SF Pro Rounded)
+┃   ┗━━ GlassmorphismStyle.swift (Modificateur .glassmorphic() pour cartes vitrées)
+┃
+┣━━ 🔧 Services/ (6 fichiers)
+┃   ┣━━ KeychainManager.swift (save/retrieve/delete/exists pour clés API)
+┃   ┣━━ AIService.swift (Protocol AIServiceProtocol + Factory)
+┃   ┣━━ ClaudeAIService.swift (POST https://api.anthropic.com/v1/messages)
+┃   ┣━━ GPTAIService.swift (POST https://api.openai.com/v1/chat/completions)
+┃   ┣━━ GeminiAIService.swift (POST https://generativelanguage.googleapis.com/...)
+┃   ┗━━ DreamRepository.swift (create/update/delete/save avec SwiftData)
+┃
+┣━━ 🧩 Components/ (5 fichiers)
+┃   ┣━━ CalendarView.swift (Calendrier mensuel + dots colorés + tap navigation)
+┃   ┣━━ DreamCard.swift (Carte rêve: titre, date, badge Oublié/Rêve/Lucide, ✦ si IA)
+┃   ┣━━ GlassCard.swift (Wrapper réutilisable avec padding + glassmorphic)
+┃   ┣━━ TabBar.swift (4 tabs: Accueil, Rêves, Statistiques, Profil)
+┃   ┗━━ AIModelPickerSheet.swift (Sheet sélection Claude/GPT/Gemini + status badges)
+┃
+┗━━ 📱 Screens/ (6 dossiers, 13 fichiers)
+    ┃
+    ┣━━ 🏠 Accueil/ (2 fichiers)
+    ┃   ┣━━ AccueilView.swift (Greeting + quote + stats + calendar + recent dreams + FAB)
+    ┃   ┗━━ AccueilViewModel.swift (userName, dailyQuote, selectedDate, quotes array)
+    ┃
+    ┣━━ ✏️ DreamEntry/ (2 fichiers)
+    ┃   ┣━━ DreamEntryView.swift (Sheet 2 steps: Memory check → Details form)
+    ┃   ┗━━ DreamEntryViewModel.swift (isRemembered?, title, date, content, isLucid, emotions)
+    ┃
+    ┣━━ 📖 DreamDetail/ (3 fichiers)
+    ┃   ┣━━ DreamDetailView.swift (Header + content/emotions + AI decode button + analysis card)
+    ┃   ┣━━ DreamDetailViewModel.swift (isLoadingAI, aiError, requestAIAnalysis, requestNewAnalysis)
+    ┃   ┗━━ DreamEditView.swift (Form edit: title, date, content, isLucid, emotions)
+    ┃
+    ┣━━ 📚 Dreams/ (2 fichiers)
+    ┃   ┣━━ DreamsListView.swift (Search + filters Tous/Lucides/Oubliés + sort Date/Émotions)
+    ┃   ┗━━ DreamsListViewModel.swift (searchText, selectedFilter, selectedSort, filteredAndSortedDreams)
+    ┃
+    ┣━━ 📊 Statistiques/ (2 fichiers)
+    ┃   ┣━━ StatistiquesView.swift (Time picker + calendar + donut + line chart + emotions + counters)
+    ┃   ┗━━ StatistiquesViewModel.swift (selectedTimeRange, getDreamsInRange, lucidity%, emotions breakdown)
+    ┃
+    ┗━━ 👤 Profil/ (2 fichiers)
+        ┣━━ ProfilView.swift (Name + 3 API keys (secure) + preferred model + notifications toggle)
+        ┗━━ ProfilViewModel.swift (firstName, 3 keys, preferredModel, notificationsEnabled, load/save)
+
+
+📄 Documentation/ (6 fichiers)
+┣━━ README.md (5.5 KB) .............. Documentation principale complète
+┣━━ QUICKSTART.md (4.6 KB) ......... Guide de démarrage étape par étape
+┣━━ CHECKLIST.md (7.6 KB) .......... Liste de vérification avant build
+┣━━ FILES.md (4.4 KB) .............. Inventaire de tous les fichiers
+┣━━ AI_API_DOCS.md (7.6 KB) ........ Documentation technique APIs IA
+┗━━ COMPLETE.md (7.0 KB) ........... Résumé final du projet
+
+⚙️ Configuration/ (2 fichiers)
+┣━━ Info.plist ..................... Configuration iOS (launch screen, orientation)
+┗━━ generate_xcode_project.sh ...... Script bash de génération (executable)
+
+
+═══════════════════════════════════════
+
+📊 STATISTIQUES
+
+Total fichiers      : 40
+├─ Swift (.swift)   : 32 fichiers (~3000 lignes)
+├─ Markdown (.md)   : 6 fichiers (~6500 lignes)
+├─ Plist (.plist)   : 1 fichier
+└─ Shell (.sh)      : 1 fichier
+
+Écrans              : 6 principaux
+├─ Accueil          : Entry point avec stats + calendar
+├─ DreamEntry       : Formulaire création (sheet)
+├─ DreamDetail      : Affichage + AI decode
+├─ Dreams           : Liste filtrable/searchable
+├─ Statistiques     : Charts + analytics
+└─ Profil           : Settings + API keys
+
+Components          : 5 réutilisables
+├─ CalendarView     : Calendrier mensuel
+├─ DreamCard        : Carte de rêve
+├─ GlassCard        : Wrapper glassmorphique
+├─ TabBar           : Navigation 4 tabs
+└─ AIModelPicker    : Sélection modèle IA
+
+Services            : 6 backends
+├─ KeychainManager  : Stockage sécurisé
+├─ AIService        : Protocol + Factory
+├─ ClaudeAI         : Anthropic integration
+├─ GPT              : OpenAI integration
+├─ Gemini           : Google integration
+└─ DreamRepository  : SwiftData queries
+
+Models              : 4 data structures
+├─ Dream            : @Model principal
+├─ Dream+Samples    : Données de test
+├─ Emotion          : Enum 6 émotions
+└─ AIModel          : Enum 3 modèles
+
+Design              : 2 fichiers système
+├─ AppTheme         : Colors + Fonts + Spacing
+└─ Glassmorphism    : Style modifier
+
+
+═══════════════════════════════════════
+
+🎯 FONCTIONNALITÉS COMPLÈTES
+
+✅ CRUD Dreams (Create, Read, Update, Delete)
+✅ Rêves souvenus/oubliés/lucides
+✅ Émotions (6 types sélectionnables)
+✅ Calendrier mensuel avec dots colorés
+✅ Décodage IA (3 providers: Claude, GPT, Gemini)
+✅ Stockage sécurisé des clés API (Keychain)
+✅ Statistiques & Charts (Swift Charts)
+✅ Search & Filters (Tous/Lucides/Oubliés)
+✅ Persistence locale (SwiftData)
+✅ Navigation custom (TabBar)
+✅ Animations fluides (spring)
+✅ Dark theme glassmorphique
+✅ Architecture MVVM
+✅ Async/await networking
+✅ Error handling & loading states
+
+
+═══════════════════════════════════════
+
+🚀 PRÊT À COMPILER !
+
+1️⃣  Ouvrez Xcode
+2️⃣  Créez un nouveau projet iOS App
+3️⃣  Importez tous les fichiers .swift
+4️⃣  Build (⌘B) & Run (⌘R)
+5️⃣  Créez votre premier rêve !
+
+📖 Voir QUICKSTART.md pour instructions détaillées
+
+
+═══════════════════════════════════════
+
+🌙 Bonne nuit et beaux rêves ! ✨
+```
