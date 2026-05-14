@@ -46,33 +46,24 @@ struct DreamDetailView: View {
                         
                         if dream.isRemembered {
                             VStack(spacing: 8) {
-                                Button(action: {
-                                    withAnimation(.spring()) {
-                                        dream.isLucid.toggle()
-                                        try? modelContext.save()
-                                    }
-                                }) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: dream.isLucid ? "star.fill" : "star")
-                                            .font(.system(size: 12, weight: .semibold))
-                                        Text("Lucide ?")
-                                            .font(AppTheme.sfProRounded(size: 11, weight: .semibold))
-                                    }
-                                    .foregroundColor(dream.isLucid ? AppTheme.brightPurple : AppTheme.textSecondary)
+                                Text(dream.type.rawValue)
+                                    .font(AppTheme.sfProRounded(size: 11, weight: .semibold))
+                                    .foregroundColor(.white)
                                     .padding(.horizontal, AppTheme.spacing8)
                                     .padding(.vertical, 6)
                                     .background(
                                         RoundedRectangle(cornerRadius: 6)
-                                            .fill(AppTheme.cardBackground)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 6)
-                                                    .stroke(
-                                                        dream.isLucid ? AppTheme.brightPurple : AppTheme.textSecondary,
-                                                        lineWidth: 1
-                                                    )
-                                            )
+                                            .fill({
+                                                switch dream.type {
+                                                case .lucid:
+                                                    return AppTheme.lucidDream
+                                                case .nightmare:
+                                                    return AppTheme.nightmareDream
+                                                case .normal:
+                                                    return AppTheme.rememberedDream
+                                                }
+                                            }())
                                     )
-                                }
                             }
                         }
                     }
@@ -351,7 +342,7 @@ struct FlowLayout: Layout {
         date: Date(),
         content: "Je me suis retrouvé sur une montagne, le ciel était dégagé et je pouvais voir toute la vallée.",
         isRemembered: true,
-        isLucid: true,
+        dreamType: .lucid,
         emotions: ["Liberté", "Joie", "Émerveillement"]
     )
     

@@ -9,12 +9,17 @@ class DreamEntryViewModel: ObservableObject {
     @Published var date: Date = Date()
     @Published var content: String = ""
     @Published var isLucid: Bool = false
+    @Published var dreamType: DreamType = .normal
     @Published var selectedEmotions: Set<String> = []
     @Published var customEmotions: [String] = []
     @Published var newEmotionText: String = ""
     @Published var showAddEmotion: Bool = false
+    @Published var showDatePicker: Bool = false
     
-    init() {
+    init(preselectedDate: Date? = nil) {
+        if let preselectedDate = preselectedDate {
+            self.date = preselectedDate
+        }
         loadCustomEmotions()
     }
     
@@ -43,11 +48,12 @@ class DreamEntryViewModel: ObservableObject {
         guard let isRemembered = isRemembered else { return }
         
         let dream = Dream(
-            title: isRemembered ? title : "Rêve oublié",
+            title: isRemembered ? (title.isEmpty ? "Sans titre" : title) : "Rêve oublié",
             date: date,
             content: isRemembered ? content : "",
             isRemembered: isRemembered,
-            isLucid: isRemembered ? isLucid : false,
+            isLucid: dreamType == .lucid,
+            dreamType: dreamType,
             emotions: Array(selectedEmotions)
         )
         

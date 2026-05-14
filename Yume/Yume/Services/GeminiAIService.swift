@@ -2,7 +2,7 @@ import Foundation
 
 struct GeminiAIService: AIServiceProtocol {
     private let apiKeyKeychain = "gemini_api_key"
-    private let baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+    private let baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
     
     func decode(dream: Dream) async throws -> String {
         let apiKey = try KeychainManager.shared.retrieve(for: apiKeyKeychain)
@@ -28,9 +28,14 @@ Longueur totale : 250 à 350 mots. Langue : français.
 """
         
         let emotionsText = dream.emotions.isEmpty ? "" : "Émotions ressenties : \(dream.emotions.joined(separator: ", "))\n"
-        let dreamType = dream.isLucid ? "Rêve lucide" : "Rêve ordinaire"
+        let dreamType = dream.type.rawValue
         
-        let userMessage = """
+        // Combine system prompt and user message for v1 API
+        let fullMessage = """
+\(systemPrompt)
+
+---
+
 Rêve : \(dream.content)
 \(emotionsText)Type : \(dreamType)
 """
@@ -40,16 +45,10 @@ Rêve : \(dream.content)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
-            "system_instruction": [
-                "parts": [
-                    ["text": systemPrompt]
-                ]
-            ],
             "contents": [
                 [
-                    "role": "user",
                     "parts": [
-                        ["text": userMessage]
+                        ["text": fullMessage]
                     ]
                 ]
             ],
@@ -60,25 +59,98 @@ Rêve : \(dream.content)
         
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
-        let (data, _) = try await URLSession.shared.data(for: request)
+        // Debug: Print request body
+        if let bodyData = request.httpBody,
+           let bodyString = String(data: bodyData, encoding: .utf8) {
+            print("🔍 Gemini Request Body: \(bodyString)")
+        }
         
-        let response = try JSONDecoder().decode(GeminiResponse.self, from: data)
-        return response.candidates[0].content.parts[0].text
+        let (data, httpResponse) = try await URLSession.shared.data(for: request)
+        
+        // Check HTTP status code
+        if let httpResponse = httpResponse as? HTTPURLResponse {
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Try to parse error message
+                if let errorString = String(data: data, encoding: .utf8) {
+                    print("❌ Gemini API Error Response: \(errorString)")
+                    throw NSError(domain: "GeminiAIService", code: httpResponse.statusCode,
+                                userInfo: [NSLocalizedDescriptionKey: "Erreur API Gemini (\(httpResponse.statusCode)). Vérifiez votre clé API."])
+                }
+                throw NSError(domain: "GeminiAIService", code: httpResponse.statusCode,
+                            userInfo: [NSLocalizedDescriptionKey: "Erreur API Gemini (\(httpResponse.statusCode))"])
+            }
+        }
+        
+        // Debug: Print raw response
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("🔍 Gemini Raw Response: \(jsonString)")
+        }
+        
+        // Decode response
+        do {
+            let response = try JSONDecoder().decode(GeminiResponse.self, from: data)
+            
+            // Check for API error
+            if let error = response.error {
+                let errorMsg = error.message ?? "Erreur inconnue"
+                print("❌ Gemini API Error: \(errorMsg)")
+                throw NSError(domain: "GeminiAIService", code: error.code ?? -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Erreur Gemini: \(errorMsg)"])
+            }
+            
+            // Validate response structure
+            guard let candidates = response.candidates, !candidates.isEmpty else {
+                throw NSError(domain: "GeminiAIService", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Aucune réponse de l'API Gemini"])
+            }
+            
+            guard let content = candidates[0].content,
+                  let parts = content.parts, !parts.isEmpty else {
+                throw NSError(domain: "GeminiAIService", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Réponse vide de l'API Gemini"])
+            }
+            
+            guard let text = parts[0].text, !text.isEmpty else {
+                throw NSError(domain: "GeminiAIService", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Texte vide dans la réponse Gemini"])
+            }
+            
+            return text
+        } catch let error as NSError where error.domain == "GeminiAIService" {
+            // Re-throw our custom errors
+            throw error
+        } catch {
+            print("❌ Gemini Decoding Error: \(error)")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📄 Raw response: \(jsonString)")
+            }
+            throw NSError(domain: "GeminiAIService", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Impossible de décoder la réponse de Gemini. Vérifiez les logs."])
+        }
     }
 }
 
 private struct GeminiResponse: Decodable {
-    let candidates: [Candidate]
+    let candidates: [Candidate]?
+    let error: GeminiError?
     
     struct Candidate: Decodable {
-        let content: Content
+        let content: Content?
+        let finishReason: String?
         
         struct Content: Decodable {
-            let parts: [Part]
+            let parts: [Part]?
+            let role: String?
             
             struct Part: Decodable {
-                let text: String
+                let text: String?
             }
         }
+    }
+    
+    struct GeminiError: Decodable {
+        let code: Int?
+        let message: String?
+        let status: String?
     }
 }

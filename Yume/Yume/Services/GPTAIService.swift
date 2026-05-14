@@ -28,7 +28,7 @@ Longueur totale : 250 à 350 mots. Langue : français.
 """
         
         let emotionsText = dream.emotions.isEmpty ? "" : "Émotions ressenties : \(dream.emotions.joined(separator: ", "))\n"
-        let dreamType = dream.isLucid ? "Rêve lucide" : "Rêve ordinaire"
+        let dreamType = dream.type.rawValue
         
         let userMessage = """
 Rêve : \(dream.content)

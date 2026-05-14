@@ -5,6 +5,7 @@ import Combine
 enum DreamFilter: String, CaseIterable {
     case all = "Tous"
     case lucid = "Lucides"
+    case nightmare = "Cauchemar"
     case forgotten = "Oubliés"
 }
 
@@ -27,7 +28,9 @@ class DreamsListViewModel: ObservableObject {
         case .all:
             break
         case .lucid:
-            filtered = filtered.filter { $0.isLucid && $0.isRemembered }
+            filtered = filtered.filter { $0.type == .lucid && $0.isRemembered }
+        case .nightmare:
+            filtered = filtered.filter { $0.type == .nightmare && $0.isRemembered }
         case .forgotten:
             filtered = filtered.filter { !$0.isRemembered }
         }

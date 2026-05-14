@@ -2,9 +2,14 @@ import SwiftUI
 import SwiftData
 
 struct DreamEntryView: View {
-    @StateObject var viewModel = DreamEntryViewModel()
+    @StateObject private var viewModel: DreamEntryViewModel
     @Environment(\.modelContext) var modelContext
     @Binding var isPresented: Bool
+    
+    init(isPresented: Binding<Bool>, preselectedDate: Date? = nil) {
+        self._isPresented = isPresented
+        self._viewModel = StateObject(wrappedValue: DreamEntryViewModel(preselectedDate: preselectedDate))
+    }
     
     var body: some View {
         NavigationStack {
@@ -209,33 +214,51 @@ private struct ForgottenDreamView: View {
 private struct DreamDetailsView: View {
     @ObservedObject var viewModel: DreamEntryViewModel
     
+    private var dateFormatted: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "fr_FR")
+        formatter.dateFormat = "EEEE d MMMM yyyy"
+        return formatter.string(from: viewModel.date).capitalized
+    }
+    
     var body: some View {
         VStack(spacing: AppTheme.spacing16) {
-            // Title
-            VStack(alignment: .leading, spacing: AppTheme.spacing8) {
-                Text("Titre du rêve")
-                    .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
-                    .foregroundColor(AppTheme.textSecondary)
-                
-                TextField("Ex: Vol au-dessus des montagnes", text: $viewModel.title)
-                    .font(AppTheme.sfProRounded(size: 14))
-                    .foregroundColor(AppTheme.textPrimary)
-                    .padding(AppTheme.spacing12)
-                    .glassmorphic()
-            }
-            
-            // Date
+            // Date (clickable)
             VStack(alignment: .leading, spacing: AppTheme.spacing8) {
                 Text("Date du rêve")
                     .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
                     .foregroundColor(AppTheme.textSecondary)
                 
+                Button(action: {
+                    withAnimation(.spring()) {
+                        viewModel.showDatePicker.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text(dateFormatted)
+                            .font(AppTheme.sfProRounded(size: 14))
+                            .foregroundColor(AppTheme.textPrimary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "calendar")
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.accentPurple)
+                    }
+                    .padding(AppTheme.spacing12)
+                    .glassmorphic()
+                }
+            }
+            
+            // Date picker (expandable)
+            if viewModel.showDatePicker {
                 DatePicker("", selection: $viewModel.date, displayedComponents: [.date])
                     .datePickerStyle(.graphical)
                     .tint(AppTheme.brightPurple)
                     .environment(\.colorScheme, .dark)
                     .padding(AppTheme.spacing12)
                     .glassmorphic()
+                    .transition(.opacity.combined(with: .scale))
             }
             
             // Content
@@ -255,18 +278,31 @@ private struct DreamDetailsView: View {
                     .glassmorphic()
             }
             
-            // Lucid toggle
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Rêve lucide ?")
-                        .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+            // Dream type selector
+            VStack(alignment: .leading, spacing: AppTheme.spacing12) {
+                Text("Type de rêve")
+                    .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.textSecondary)
+                
+                HStack(spacing: AppTheme.spacing8) {
+                    DreamTypeButton(
+                        type: .normal,
+                        isSelected: viewModel.dreamType == .normal,
+                        action: { viewModel.dreamType = .normal }
+                    )
+                    
+                    DreamTypeButton(
+                        type: .lucid,
+                        isSelected: viewModel.dreamType == .lucid,
+                        action: { viewModel.dreamType = .lucid }
+                    )
+                    
+                    DreamTypeButton(
+                        type: .nightmare,
+                        isSelected: viewModel.dreamType == .nightmare,
+                        action: { viewModel.dreamType = .nightmare }
+                    )
                 }
-                
-                Spacer()
-                
-                Toggle("", isOn: $viewModel.isLucid)
-                    .tint(AppTheme.brightPurple)
             }
             .padding(AppTheme.spacing12)
             .glassmorphic()
@@ -373,6 +409,56 @@ private struct DreamDetailsView: View {
                 .padding(AppTheme.spacing12)
                 .glassmorphic()
             }
+        }
+    }
+}
+
+private struct DreamTypeButton: View {
+    let type: DreamType
+    let isSelected: Bool
+    let action: () -> Void
+    
+    private var color: Color {
+        switch type {
+        case .normal:
+            return AppTheme.rememberedDream
+        case .lucid:
+            return AppTheme.lucidDream
+        case .nightmare:
+            return AppTheme.nightmareDream
+        }
+    }
+    
+    private var icon: String {
+        switch type {
+        case .normal:
+            return "moon.fill"
+        case .lucid:
+            return "star.fill"
+        case .nightmare:
+            return "bolt.fill"
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                Text(type.rawValue)
+                    .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
+            }
+            .foregroundColor(isSelected ? .white : AppTheme.textPrimary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppTheme.spacing12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? color : AppTheme.cardBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color, lineWidth: isSelected ? 0 : 1)
+            )
         }
     }
 }

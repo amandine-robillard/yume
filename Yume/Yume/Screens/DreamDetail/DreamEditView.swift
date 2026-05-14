@@ -10,7 +10,7 @@ struct DreamEditView: View {
     @State private var title: String = ""
     @State private var date: Date = Date()
     @State private var content: String = ""
-    @State private var isLucid: Bool = false
+    @State private var dreamType: DreamType = .normal
     @State private var selectedEmotions: Set<String> = []
     @State private var customEmotions: [String] = []
     @State private var newEmotionText: String = ""
@@ -67,18 +67,31 @@ struct DreamEditView: View {
                                 .glassmorphic()
                         }
                         
-                        // Lucid toggle
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Rêve lucide ?")
-                                    .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
-                                    .foregroundColor(AppTheme.textPrimary)
+                        // Dream type selector
+                        VStack(alignment: .leading, spacing: AppTheme.spacing12) {
+                            Text("Type de rêve")
+                                .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
+                                .foregroundColor(AppTheme.textSecondary)
+                            
+                            HStack(spacing: AppTheme.spacing8) {
+                                DreamTypeButton(
+                                    type: .normal,
+                                    isSelected: dreamType == .normal,
+                                    action: { dreamType = .normal }
+                                )
+                                
+                                DreamTypeButton(
+                                    type: .lucid,
+                                    isSelected: dreamType == .lucid,
+                                    action: { dreamType = .lucid }
+                                )
+                                
+                                DreamTypeButton(
+                                    type: .nightmare,
+                                    isSelected: dreamType == .nightmare,
+                                    action: { dreamType = .nightmare }
+                                )
                             }
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: $isLucid)
-                                .tint(AppTheme.brightPurple)
                         }
                         .padding(AppTheme.spacing12)
                         .glassmorphic()
@@ -210,7 +223,8 @@ struct DreamEditView: View {
                         dream.title = title
                         dream.date = date
                         dream.content = content
-                        dream.isLucid = isLucid
+                        dream.type = dreamType
+                        dream.isLucid = dreamType == .lucid
                         dream.emotions = Array(selectedEmotions)
                         
                         try? modelContext.save()
@@ -253,7 +267,7 @@ struct DreamEditView: View {
             title = dream.title
             date = dream.date
             content = dream.content
-            isLucid = dream.isLucid
+            dreamType = dream.type
             selectedEmotions = Set(dream.emotions)
             
             // Load custom emotions
@@ -287,6 +301,56 @@ private struct EmotionChip: View {
                             lineWidth: isSelected ? 0 : 1
                         )
                 )
+        }
+    }
+}
+
+private struct DreamTypeButton: View {
+    let type: DreamType
+    let isSelected: Bool
+    let action: () -> Void
+    
+    private var color: Color {
+        switch type {
+        case .normal:
+            return AppTheme.rememberedDream
+        case .lucid:
+            return AppTheme.lucidDream
+        case .nightmare:
+            return AppTheme.nightmareDream
+        }
+    }
+    
+    private var icon: String {
+        switch type {
+        case .normal:
+            return "moon.fill"
+        case .lucid:
+            return "star.fill"
+        case .nightmare:
+            return "bolt.fill"
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                Text(type.rawValue)
+                    .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
+            }
+            .foregroundColor(isSelected ? .white : AppTheme.textPrimary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppTheme.spacing12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? color : AppTheme.cardBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color, lineWidth: isSelected ? 0 : 1)
+            )
         }
     }
 }

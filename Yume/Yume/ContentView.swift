@@ -30,11 +30,14 @@ struct ContentView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: selectedTab)
                 
                 // Tab bar
                 TabBar(selectedTab: $selectedTab)
             }
         }
+        .background(AppTheme.background)
     }
 }
 

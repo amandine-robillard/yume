@@ -3,23 +3,41 @@ import SwiftUI
 struct DreamCard: View {
     let dream: Dream
     
+    private var displayTitle: String {
+        if !dream.title.isEmpty && dream.title != "Sans titre" {
+            return dream.title
+        } else if !dream.content.isEmpty {
+            // Return first line of content or first 50 characters
+            let content = dream.content.trimmingCharacters(in: .whitespacesAndNewlines)
+            if content.count > 50 {
+                return String(content.prefix(50)) + "..."
+            }
+            return content
+        } else {
+            return "Sans titre"
+        }
+    }
+    
     private var statusBadge: String {
         if !dream.isRemembered {
             return "Oublié"
-        } else if dream.isLucid {
-            return "Lucide"
         } else {
-            return "Rêve"
+            return dream.type.rawValue
         }
     }
     
     private var badgeColor: Color {
         if !dream.isRemembered {
             return AppTheme.forgottenDream
-        } else if dream.isLucid {
-            return AppTheme.lucidDream
         } else {
-            return AppTheme.rememberedDream
+            switch dream.type {
+            case .lucid:
+                return AppTheme.lucidDream
+            case .nightmare:
+                return AppTheme.nightmareDream
+            case .normal:
+                return AppTheme.rememberedDream
+            }
         }
     }
     
@@ -34,7 +52,7 @@ struct DreamCard: View {
         HStack(spacing: AppTheme.spacing12) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(dream.title)
+                    Text(displayTitle)
                         .font(AppTheme.sfProRounded(size: 14, weight: .semibold))
                         .foregroundColor(AppTheme.textPrimary)
                         .lineLimit(1)
@@ -70,7 +88,7 @@ struct DreamCard: View {
 }
 
 #Preview {
-    DreamCard(dream: Dream(title: "Vol au-dessus des montagnes", content: "", isRemembered: true, isLucid: true))
+    DreamCard(dream: Dream(title: "Vol au-dessus des montagnes", content: "", isRemembered: true, dreamType: .lucid))
         .padding()
         .background(AppTheme.background)
 }

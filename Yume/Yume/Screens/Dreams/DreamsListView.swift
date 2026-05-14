@@ -103,7 +103,9 @@ struct DreamsListView: View {
             .navigationTitle("Rêves")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
+        .preferredColorScheme(.dark)
     }
 }
 

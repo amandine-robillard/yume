@@ -13,7 +13,8 @@ struct AppTheme {
     // Dream state colors
     static let forgottenDream = Color(red: 0.29, green: 0.333, blue: 0.408) // #4A5568
     static let rememberedDream = Color(red: 0.482, green: 0.369, blue: 0.655) // #7B5EA7
-    static let lucidDream = Color(red: 0.278, green: 0.800, blue: 0.737) // #47ccbc
+    static let lucidDream = Color(red: 0.263, green: 1.0, blue: 0.863) // #43ffdc
+    static let nightmareDream = Color(red: 0.765, green: 0.212, blue: 0.325) // #c33653
     
     // MARK: - Spacing
     static let spacing8: CGFloat = 8

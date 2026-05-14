@@ -12,7 +12,7 @@ class DreamRepository {
         date: Date,
         content: String,
         isRemembered: Bool,
-        isLucid: Bool,
+        dreamType: DreamType,
         emotions: [String],
         modelContext: ModelContext
     ) -> Dream {
@@ -21,7 +21,8 @@ class DreamRepository {
             date: date,
             content: content,
             isRemembered: isRemembered,
-            isLucid: isLucid,
+            isLucid: dreamType == .lucid,
+            dreamType: dreamType,
             emotions: emotions
         )
         modelContext.insert(dream)
@@ -34,7 +35,7 @@ class DreamRepository {
         date: Date,
         content: String,
         isRemembered: Bool,
-        isLucid: Bool,
+        dreamType: DreamType,
         emotions: [String],
         modelContext: ModelContext
     ) {
@@ -42,7 +43,8 @@ class DreamRepository {
         dream.date = date
         dream.content = content
         dream.isRemembered = isRemembered
-        dream.isLucid = isLucid
+        dream.isLucid = dreamType == .lucid
+        dream.type = dreamType
         dream.emotions = emotions
     }
     

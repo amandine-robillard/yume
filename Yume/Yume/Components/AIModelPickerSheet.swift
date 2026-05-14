@@ -48,9 +48,11 @@ private struct ModelCard: View {
     var body: some View {
         Button(action: {
             if isConfigured {
+                // Fermer le sheet immédiatement
+                onSelect()
+                // Lancer la requête AI en arrière-plan
                 Task {
                     await viewModel.requestAIAnalysis(model: model)
-                    onSelect()
                 }
             }
         }) {

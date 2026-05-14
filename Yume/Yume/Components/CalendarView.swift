@@ -53,10 +53,15 @@ struct CalendarView: View {
         guard let dream = dream else { return .clear }
         if !dream.isRemembered {
             return AppTheme.forgottenDream
-        } else if dream.isLucid {
-            return AppTheme.lucidDream
         } else {
-            return AppTheme.rememberedDream
+            switch dream.type {
+            case .lucid:
+                return AppTheme.lucidDream
+            case .nightmare:
+                return AppTheme.nightmareDream
+            case .normal:
+                return AppTheme.rememberedDream
+            }
         }
     }
     

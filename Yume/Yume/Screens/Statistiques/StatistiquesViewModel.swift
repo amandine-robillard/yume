@@ -30,7 +30,7 @@ class StatistiquesViewModel: ObservableObject {
     }
     
     func getLucidCount(_ dreams: [Dream]) -> Int {
-        dreams.filter { $0.isLucid && $0.isRemembered }.count
+        dreams.filter { $0.type == .lucid && $0.isRemembered }.count
     }
     
     func getRememberedCount(_ dreams: [Dream]) -> Int {

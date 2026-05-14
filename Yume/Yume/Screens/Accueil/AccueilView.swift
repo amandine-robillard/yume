@@ -5,6 +5,8 @@ struct AccueilView: View {
     @StateObject var viewModel = AccueilViewModel()
     @State private var selectedDate = Date()
     @State private var showDreamEntry = false
+    @State private var selectedWeekStart = Calendar.current.startOfWeek(for: Date())
+    @State private var preselectedDate: Date?
     @State private var navigationPath: NavigationPath = NavigationPath()
     
     @Query(sort: \Dream.date, order: .reverse) var allDreams: [Dream]
@@ -20,29 +22,25 @@ struct AccueilView: View {
         return dict
     }
     
-    private var thisMonthDreams: [Dream] {
+    private var thisWeekDreams: [Dream] {
         let calendar = Calendar.current
         let now = Date()
-        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
-        let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)!
-        return allDreams.filter { $0.date >= startOfMonth && $0.date <= endOfMonth }
+        let weekStart = calendar.startOfWeek(for: now)
+        let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) ?? now
+        return allDreams.filter { $0.date >= weekStart && $0.date < weekEnd }
     }
     
-    private var rememberedThisMonth: [Dream] {
-        thisMonthDreams.filter { $0.isRemembered }
+    private var rememberedThisWeek: [Dream] {
+        thisWeekDreams.filter { $0.isRemembered }
     }
     
-    private var lucidThisMonth: [Dream] {
-        thisMonthDreams.filter { $0.isLucid && $0.isRemembered }
+    private var lucidThisWeek: [Dream] {
+        thisWeekDreams.filter { $0.type == .lucid && $0.isRemembered }
     }
     
     private var lucidityRate: Int {
-        guard !rememberedThisMonth.isEmpty else { return 0 }
-        return Int(Double(lucidThisMonth.count) / Double(rememberedThisMonth.count) * 100)
-    }
-    
-    private var recentDreams: [Dream] {
-        Array(allDreams.prefix(5))
+        guard !rememberedThisWeek.isEmpty else { return 0 }
+        return Int(Double(lucidThisWeek.count) / Double(rememberedThisWeek.count) * 100)
     }
     
     var body: some View {
@@ -52,78 +50,55 @@ struct AccueilView: View {
                 
                 ScrollView {
                     VStack(spacing: AppTheme.spacing20) {
-                        // Moon and clouds illustration
-                        ZStack {
-                            // Cloud 1
-                            Circle()
-                                .fill(Color.white.opacity(0.1))
-                                .frame(width: 60, height: 60)
-                                .offset(x: -40, y: 10)
-                            
-                            // Cloud 2
-                            Circle()
-                                .fill(Color.white.opacity(0.08))
-                                .frame(width: 50, height: 50)
-                                .offset(x: 40, y: 15)
-                            
-                            // Moon
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            AppTheme.brightPurple,
-                                            AppTheme.accentPurple
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 80, height: 80)
-                                .overlay(
-                                    Circle()
-                                        .fill(Color.white.opacity(0.2))
-                                        .frame(width: 20, height: 20)
-                                        .offset(x: 15, y: -10)
-                                )
-                        }
-                        .frame(height: 100)
-                        .frame(maxWidth: .infinity)
+                        // Cover image
+                        Image("cover")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 180)
                         
-                        // Greeting + Quote
-                        VStack(alignment: .leading, spacing: AppTheme.spacing8) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("\(viewModel.getGreeting()), \(viewModel.firstName)")
-                                        .font(AppTheme.sfProRounded(size: 20, weight: .bold))
-                                        .foregroundColor(AppTheme.textPrimary)
-                                    
-                                    Text("\"" + viewModel.dailyQuote + "\"")
-                                        .font(AppTheme.sfProRounded(size: 12))
-                                        .foregroundColor(AppTheme.textSecondary)
-                                        .lineLimit(2)
-                                }
+                        // Greeting + Quote (no card background)
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(viewModel.getGreeting()), \(viewModel.firstName)")
+                                    .font(AppTheme.sfProRounded(size: 20, weight: .bold))
+                                    .foregroundColor(AppTheme.textPrimary)
                                 
-                                Spacer()
-                                
-                                Image(systemName: "moon.stars.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(AppTheme.brightPurple)
+                                Text("\"" + viewModel.dailyQuote + "\"")
+                                    .font(AppTheme.sfProRounded(size: 12))
+                                    .foregroundColor(AppTheme.textSecondary)
+                                    .lineLimit(2)
                             }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "moon.stars.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(AppTheme.brightPurple)
                         }
-                        .padding(AppTheme.spacing16)
-                        .glassmorphic()
+                        .padding(.horizontal, AppTheme.spacing16)
+                        
+                        // Week calendar
+                        WeekCalendarView(
+                            selectedWeekStart: $selectedWeekStart,
+                            dreamsForDate: dreamsForCalendar,
+                            onDateTap: { date in
+                                preselectedDate = date
+                                showDreamEntry = true
+                            }
+                        )
                         
                         // Stats row
                         HStack(spacing: AppTheme.spacing12) {
                             StatCard(
-                                label: "Rêves ce mois-ci",
-                                value: String(thisMonthDreams.count),
+                                label: "Rêves",
+                                value: String(thisWeekDreams.count),
                                 icon: "book"
                             )
                             
                             StatCard(
                                 label: "Rêves lucides",
-                                value: String(lucidThisMonth.count),
+                                value: String(lucidThisWeek.count),
                                 icon: "sparkles"
                             )
                             
@@ -132,29 +107,6 @@ struct AccueilView: View {
                                 value: "\(lucidityRate)%",
                                 icon: "percent"
                             )
-                        }
-                        
-                        // Recent dreams
-                        VStack(alignment: .leading, spacing: AppTheme.spacing12) {
-                            Text("Récents")
-                                .font(AppTheme.sfProRounded(size: 16, weight: .semibold))
-                                .foregroundColor(AppTheme.textPrimary)
-                            
-                            if recentDreams.isEmpty {
-                                Text("Aucun rêve enregistré pour le moment")
-                                    .font(AppTheme.sfProRounded(size: 13))
-                                    .foregroundColor(AppTheme.textSecondary)
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .padding(AppTheme.spacing16)
-                            } else {
-                                VStack(spacing: AppTheme.spacing8) {
-                                    ForEach(recentDreams) { dream in
-                                        NavigationLink(destination: DreamDetailView(dream: dream)) {
-                                            DreamCard(dream: dream)
-                                        }
-                                    }
-                                }
-                            }
                         }
                         .padding(.horizontal, AppTheme.spacing16)
                     }
@@ -198,13 +150,14 @@ struct AccueilView: View {
                 }
             }
             .sheet(isPresented: $showDreamEntry) {
-                DreamEntryView(isPresented: $showDreamEntry)
+                DreamEntryView(isPresented: $showDreamEntry, preselectedDate: preselectedDate)
                     .presentationDetents([.medium, .large])
             }
             .navigationDestination(for: Dream.self) { dream in
                 DreamDetailView(dream: dream)
             }
         }
+        .preferredColorScheme(.dark)
     }
 }
 

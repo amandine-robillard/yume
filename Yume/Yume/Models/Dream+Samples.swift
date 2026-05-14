@@ -15,7 +15,7 @@ extension Dream {
                 date: now,
                 content: "Je me suis retrouvé sur une montagne, le ciel était dégagé et je pouvais voir toute la vallée. Soudain, j'ai réalisé que je rêvais et j'ai décidé de m'envoler. La sensation de liberté était incroyable.",
                 isRemembered: true,
-                isLucid: true,
+                dreamType: .lucid,
                 emotions: ["Liberté", "Joie", "Émerveillement"],
                 aiAnalysis: """
 🌙 ATMOSPHÈRE
@@ -35,7 +35,7 @@ Quel aspect de ta vie appelle à plus de légèreté et de liberté consciente ?
                 date: calendar.date(byAdding: .day, value: -1, to: now)!,
                 content: "J'explorais une grande maison que je ne connaissais pas. Chaque pièce était différente, certaines lumineuses et d'autres sombres. Je ressentais de la curiosité mais aussi un peu de peur.",
                 isRemembered: true,
-                isLucid: false,
+                dreamType: .normal,
                 emotions: ["Peur", "Émerveillement"]
             ),
             
@@ -44,7 +44,7 @@ Quel aspect de ta vie appelle à plus de légèreté et de liberté consciente ?
                 date: calendar.date(byAdding: .day, value: -3, to: now)!,
                 content: "J'ai revu un ami d'enfance que je n'ai pas vu depuis des années. On était dans un jardin ensoleillé et on riait beaucoup. Ça m'a fait du bien de le revoir même si ce n'était qu'un rêve.",
                 isRemembered: true,
-                isLucid: false,
+                dreamType: .normal,
                 emotions: ["Joie", "Sérénité"]
             ),
             
@@ -53,7 +53,7 @@ Quel aspect de ta vie appelle à plus de légèreté et de liberté consciente ?
                 date: calendar.date(byAdding: .day, value: -5, to: now)!,
                 content: "",
                 isRemembered: false,
-                isLucid: false,
+                dreamType: .normal,
                 emotions: []
             ),
             
@@ -62,7 +62,7 @@ Quel aspect de ta vie appelle à plus de légèreté et de liberté consciente ?
                 date: calendar.date(byAdding: .day, value: -7, to: now)!,
                 content: "Je nageais dans un océan qui brillait de mille feux. L'eau était chaude et phosphorescente. J'ai su que je rêvais et j'ai décidé de plonger plus profond pour explorer les fonds marins.",
                 isRemembered: true,
-                isLucid: true,
+                dreamType: .lucid,
                 emotions: ["Émerveillement", "Liberté", "Sérénité"]
             ),
             
@@ -71,7 +71,7 @@ Quel aspect de ta vie appelle à plus de légèreté et de liberté consciente ?
                 date: calendar.date(byAdding: .day, value: -10, to: now)!,
                 content: "Je courais dans une ville sombre, poursuivi par quelque chose que je ne voyais pas. Mon cœur battait fort et je cherchais désespérément un endroit où me cacher.",
                 isRemembered: true,
-                isLucid: false,
+                dreamType: .nightmare,
                 emotions: ["Peur"]
             ),
             
@@ -80,7 +80,7 @@ Quel aspect de ta vie appelle à plus de légèreté et de liberté consciente ?
                 date: calendar.date(byAdding: .day, value: -12, to: now)!,
                 content: "Je me trouvais dans une immense bibliothèque avec des étagères qui montaient jusqu'au ciel. J'ai réalisé que je rêvais et j'ai commencé à lire des livres qui n'existaient pas dans la réalité.",
                 isRemembered: true,
-                isLucid: true,
+                dreamType: .lucid,
                 emotions: ["Émerveillement", "Joie"],
                 aiAnalysis: """
 🌙 ATMOSPHÈRE
@@ -100,7 +100,7 @@ Quel savoir cherches-tu intuitivement, sans même en avoir conscience ? Quelle p
                 date: calendar.date(byAdding: .day, value: -15, to: now)!,
                 content: "Un jardin extraordinaire avec des fleurs géantes et des papillons multicolores. Tout était paisible et beau.",
                 isRemembered: true,
-                isLucid: false,
+                dreamType: .normal,
                 emotions: ["Sérénité", "Émerveillement"]
             ),
             
@@ -109,7 +109,7 @@ Quel savoir cherches-tu intuitivement, sans même en avoir conscience ? Quelle p
                 date: calendar.date(byAdding: .day, value: -18, to: now)!,
                 content: "",
                 isRemembered: false,
-                isLucid: false,
+                dreamType: .normal,
                 emotions: []
             ),
             
@@ -118,7 +118,7 @@ Quel savoir cherches-tu intuitivement, sans même en avoir conscience ? Quelle p
                 date: calendar.date(byAdding: .day, value: -20, to: now)!,
                 content: "J'assistais à un concert dans l'espace, entouré d'étoiles. La musique était magnifique et je flottais en apesanteur. C'était un rêve lucide incroyable.",
                 isRemembered: true,
-                isLucid: true,
+                dreamType: .lucid,
                 emotions: ["Joie", "Émerveillement", "Liberté"]
             )
         ]

@@ -27,6 +27,9 @@ struct StatistiquesView: View {
                 
                 ScrollView {
                     VStack(spacing: AppTheme.spacing16) {
+                        // Calendar
+                        CalendarView(selectedDate: $viewModel.selectedDate, dreamsForDate: dreamsForCalendar)
+                        
                         // Time range picker
                         HStack(spacing: AppTheme.spacing8) {
                             ForEach(TimeRange.allCases, id: \.self) { range in
@@ -48,9 +51,6 @@ struct StatistiquesView: View {
                             }
                         }
                         .padding(.horizontal, AppTheme.spacing16)
-                        
-                        // Calendar
-                        CalendarView(selectedDate: $viewModel.selectedDate, dreamsForDate: dreamsForCalendar)
                         
                         // Lucid dreams stats
                         VStack(alignment: .leading, spacing: AppTheme.spacing12) {
@@ -216,12 +216,14 @@ private struct DreamsTimelineChart: View {
             }
             
             let forgotten = dayDreams.filter { !$0.isRemembered }.count
-            let remembered = dayDreams.filter { $0.isRemembered && !$0.isLucid }.count
-            let lucid = dayDreams.filter { $0.isLucid && $0.isRemembered }.count
+            let remembered = dayDreams.filter { $0.isRemembered && $0.type == .normal }.count
+            let lucid = dayDreams.filter { $0.type == .lucid && $0.isRemembered }.count
+            let nightmare = dayDreams.filter { $0.type == .nightmare && $0.isRemembered }.count
             
             if forgotten > 0 { data.append((currentDate, "Oubliés", forgotten)) }
             if remembered > 0 { data.append((currentDate, "Rêves", remembered)) }
             if lucid > 0 { data.append((currentDate, "Lucides", lucid)) }
+            if nightmare > 0 { data.append((currentDate, "Cauchemars", nightmare)) }
             
             currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? now
         }
@@ -242,7 +244,8 @@ private struct DreamsTimelineChart: View {
         .chartForegroundStyleScale([
             "Oubliés": AppTheme.forgottenDream,
             "Rêves": AppTheme.rememberedDream,
-            "Lucides": AppTheme.lucidDream
+            "Lucides": AppTheme.lucidDream,
+            "Cauchemars": AppTheme.nightmareDream
         ])
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
