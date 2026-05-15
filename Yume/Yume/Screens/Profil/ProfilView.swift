@@ -1,7 +1,11 @@
 import SwiftUI
+import SwiftData
+import UIKit
+import UniformTypeIdentifiers
 
 struct ProfilView: View {
     @StateObject var viewModel = ProfilViewModel()
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         NavigationStack {
@@ -191,6 +195,125 @@ struct ProfilView: View {
                         .padding(AppTheme.spacing16)
                         .glassmorphic()
                         .padding(.horizontal, AppTheme.spacing16)
+                        
+                        // Export/Import section
+                        VStack(alignment: .leading, spacing: AppTheme.spacing12) {
+                            Text("Données")
+                                .font(AppTheme.sfProRounded(size: 16, weight: .bold))
+                                .foregroundColor(AppTheme.textPrimary)
+                            
+                            Text("Exportez et importez vos rêves en cas de changement de téléphone")
+                                .font(AppTheme.sfProRounded(size: 12))
+                                .foregroundColor(AppTheme.textSecondary)
+                            
+                            VStack(spacing: AppTheme.spacing8) {
+                                Button(action: {
+                                    viewModel.loadDreams(from: modelContext)
+                                    viewModel.exportDreams()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "arrow.up.doc")
+                                            .font(.system(size: 16, weight: .semibold))
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Exporter les rêves")
+                                                .font(AppTheme.sfProRounded(size: 14, weight: .semibold))
+                                            
+                                            Text("Partager vos rêves sauvegardés")
+                                                .font(AppTheme.sfProRounded(size: 11))
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(AppTheme.spacing12)
+                                    .foregroundColor(.white)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                AppTheme.accentPurple,
+                                                AppTheme.brightPurple
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .cornerRadius(10)
+                                }
+                                
+                                Button(action: {
+                                    viewModel.showFileImporter = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "arrow.down.doc")
+                                            .font(.system(size: 16, weight: .semibold))
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Importer les rêves")
+                                                .font(AppTheme.sfProRounded(size: 14, weight: .semibold))
+                                            
+                                            Text("Charger un fichier d'export")
+                                                .font(AppTheme.sfProRounded(size: 11))
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(AppTheme.spacing12)
+                                    .foregroundColor(.white)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(red: 0.2, green: 0.4, blue: 0.8),
+                                                Color(red: 0.3, green: 0.6, blue: 1.0)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .cornerRadius(10)
+                                }
+                                
+                                Divider()
+                                    .padding(.vertical, AppTheme.spacing8)
+                                
+                                Button(action: {
+                                    viewModel.showDeleteConfirmation = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 16, weight: .semibold))
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Supprimer les données")
+                                                .font(AppTheme.sfProRounded(size: 14, weight: .semibold))
+                                            
+                                            Text("Effacer tous les rêves et émotions")
+                                                .font(AppTheme.sfProRounded(size: 11))
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(AppTheme.spacing12)
+                                    .foregroundColor(.white)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color(red: 0.8, green: 0.2, blue: 0.2),
+                                                Color(red: 1.0, green: 0.3, blue: 0.3)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .cornerRadius(10)
+                                }
+                            }
+                        }
+                        .padding(AppTheme.spacing16)
+                        .glassmorphic()
+                        .padding(.horizontal, AppTheme.spacing16)
                     }
                     .padding(.vertical, AppTheme.spacing16)
                     .padding(.bottom, AppTheme.spacing100)
@@ -200,6 +323,71 @@ struct ProfilView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .alert("Export", isPresented: $viewModel.showExportAlert) {
+                Button("OK") { }
+            } message: {
+                Text(viewModel.exportMessage)
+            }
+            .alert("Import", isPresented: $viewModel.showImportAlert) {
+                Button("OK") { }
+            } message: {
+                Text(viewModel.importMessage)
+            }
+            .confirmationDialog(
+                "Options d'import",
+                isPresented: $viewModel.showImportOptions,
+                presenting: ()
+            ) { _ in
+                Button("Mixer avec les données existantes", action: {
+                    viewModel.performImport(replaceExisting: false)
+                })
+                
+                Button("Remplacer toutes les données", role: .destructive, action: {
+                    viewModel.performImport(replaceExisting: true)
+                })
+                
+                Button("Annuler", role: .cancel, action: {
+                    viewModel.importFileURL = nil
+                })
+            } message: { _ in
+                Text("Que souhaitez-vous faire avec les données existantes?")
+            }
+            .sheet(isPresented: $viewModel.showShareSheet) {
+                ShareSheet(items: viewModel.shareItems)
+            }
+            .fileImporter(
+                isPresented: $viewModel.showFileImporter,
+                allowedContentTypes: [.json],
+                onCompletion: { result in
+                    switch result {
+                    case .success(let url):
+                        viewModel.loadDreams(from: modelContext)
+                        viewModel.importFromFile(url: url)
+                    case .failure(let error):
+                        viewModel.importMessage = "Erreur lors de la sélection du fichier: \(error.localizedDescription)"
+                        viewModel.showImportAlert = true
+                    }
+                }
+            )
+            .confirmationDialog(
+                "Supprimer toutes les données?",
+                isPresented: $viewModel.showDeleteConfirmation,
+                presenting: ()
+            ) { _ in
+                Button("Supprimer", role: .destructive, action: {
+                    viewModel.modelContext = modelContext
+                    viewModel.deleteAllData()
+                })
+                
+                Button("Annuler", role: .cancel, action: {})
+            } message: { _ in
+                Text("Cette action supprimera tous vos rêves et vos émotions personnalisées. Cette action ne peut pas être annulée.")
+            }
+            .alert("Suppression", isPresented: $viewModel.showDeleteAlert) {
+                Button("OK") { }
+            } message: {
+                Text(viewModel.deleteMessage)
+            }
         }
         .preferredColorScheme(.dark)
     }
@@ -260,6 +448,17 @@ private struct APIKeyField: View {
                     .fill(AppTheme.cardBackground)
             )
         }
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        return UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
     }
 }
 
