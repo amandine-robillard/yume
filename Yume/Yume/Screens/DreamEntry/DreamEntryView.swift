@@ -5,10 +5,12 @@ struct DreamEntryView: View {
     @StateObject private var viewModel: DreamEntryViewModel
     @Environment(\.modelContext) var modelContext
     @Binding var isPresented: Bool
+    var onDreamSaved: ((Dream) -> Void)?
     
-    init(isPresented: Binding<Bool>, preselectedDate: Date? = nil) {
+    init(isPresented: Binding<Bool>, preselectedDate: Date? = nil, onDreamSaved: ((Dream) -> Void)? = nil) {
         self._isPresented = isPresented
         self._viewModel = StateObject(wrappedValue: DreamEntryViewModel(preselectedDate: preselectedDate))
+        self.onDreamSaved = onDreamSaved
     }
     
     var body: some View {
@@ -23,7 +25,7 @@ struct DreamEntryView: View {
                             MemoryCheckView(viewModel: viewModel)
                         } else if viewModel.isRemembered == false {
                             // Forgotten dream - just save it
-                            ForgottenDreamView(viewModel: viewModel, isPresented: $isPresented)
+                            ForgottenDreamView(viewModel: viewModel, isPresented: $isPresented, onDreamSaved: onDreamSaved)
                         } else {
                             // Step 2: Dream details
                             DreamDetailsView(viewModel: viewModel)
@@ -40,7 +42,10 @@ struct DreamEntryView: View {
                         
                         Button(action: {
                             viewModel.saveDream(modelContext: modelContext)
-                            isPresented = false
+                            if let savedDream = viewModel.savedDream {
+                                isPresented = false
+                                onDreamSaved?(savedDream)
+                            }
                         }) {
                             Text("Enregistrer")
                                 .font(AppTheme.sfProRounded(size: 16, weight: .semibold))
@@ -166,6 +171,7 @@ private struct ForgottenDreamView: View {
     @ObservedObject var viewModel: DreamEntryViewModel
     @Binding var isPresented: Bool
     @Environment(\.modelContext) var modelContext
+    var onDreamSaved: ((Dream) -> Void)?
     
     var body: some View {
         VStack(spacing: AppTheme.spacing24) {
@@ -187,7 +193,10 @@ private struct ForgottenDreamView: View {
             
             Button(action: {
                 viewModel.saveDream(modelContext: modelContext)
-                isPresented = false
+                if let savedDream = viewModel.savedDream {
+                    isPresented = false
+                    onDreamSaved?(savedDream)
+                }
             }) {
                 Text("OK")
                     .font(AppTheme.sfProRounded(size: 16, weight: .semibold))
@@ -203,7 +212,10 @@ private struct ForgottenDreamView: View {
             // Auto-save forgotten dream after 1 second
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 viewModel.saveDream(modelContext: modelContext)
-                isPresented = false
+                if let savedDream = viewModel.savedDream {
+                    isPresented = false
+                    onDreamSaved?(savedDream)
+                }
             }
         }
     }
@@ -252,7 +264,7 @@ private struct DreamDetailsView: View {
             
             // Date picker (expandable)
             if viewModel.showDatePicker {
-                DatePicker("", selection: $viewModel.date, displayedComponents: [.date])
+                DatePicker("", selection: $viewModel.date, in: ...Date(), displayedComponents: [.date])
                     .datePickerStyle(.graphical)
                     .tint(AppTheme.brightPurple)
                     .environment(\.colorScheme, .dark)

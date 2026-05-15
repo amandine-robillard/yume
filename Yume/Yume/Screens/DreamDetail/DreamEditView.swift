@@ -15,6 +15,7 @@ struct DreamEditView: View {
     @State private var customEmotions: [String] = []
     @State private var newEmotionText: String = ""
     @State private var showAddEmotion: Bool = false
+    @State private var showDatePicker: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -36,18 +37,42 @@ struct DreamEditView: View {
                                 .glassmorphic()
                         }
                         
-                        // Date
+                        // Date (clickable button like DreamEntryView)
                         VStack(alignment: .leading, spacing: AppTheme.spacing8) {
                             Text("Date du rêve")
                                 .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
                                 .foregroundColor(AppTheme.textSecondary)
                             
-                            DatePicker("", selection: $date, displayedComponents: [.date])
+                            Button(action: {
+                                withAnimation(.spring()) {
+                                    showDatePicker.toggle()
+                                }
+                            }) {
+                                HStack {
+                                    Text(dateFormatted)
+                                        .font(AppTheme.sfProRounded(size: 14))
+                                        .foregroundColor(AppTheme.textPrimary)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "calendar")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(AppTheme.accentPurple)
+                                }
+                                .padding(AppTheme.spacing12)
+                                .glassmorphic()
+                            }
+                        }
+                        
+                        // Date picker (expandable)
+                        if showDatePicker {
+                            DatePicker("", selection: $date, in: ...Date(), displayedComponents: [.date])
                                 .datePickerStyle(.graphical)
                                 .tint(AppTheme.brightPurple)
                                 .environment(\.colorScheme, .dark)
                                 .padding(AppTheme.spacing12)
                                 .glassmorphic()
+                                .transition(.opacity.combined(with: .scale))
                         }
                         
                         // Content
@@ -172,21 +197,7 @@ struct DreamEditView: View {
                                         .cornerRadius(8)
                                     
                                     Button(action: {
-                                        let trimmed = newEmotionText.trimmingCharacters(in: .whitespacesAndNewlines)
-                                        guard !trimmed.isEmpty else { return }
-                                        
-                                        let allEmotions = Emotion.allCases.map { $0.rawValue } + customEmotions
-                                        guard !allEmotions.contains(trimmed) else { return }
-                                        
-                                        customEmotions.append(trimmed)
-                                        selectedEmotions.insert(trimmed)
-                                        var saved = UserDefaults.standard.array(forKey: "customEmotions") as? [String] ?? []
-                                        if !saved.contains(trimmed) {
-                                            saved.append(trimmed)
-                                            UserDefaults.standard.set(saved, forKey: "customEmotions")
-                                        }
-                                        newEmotionText = ""
-                                        showAddEmotion = false
+                                        addCustomEmotion()
                                     }) {
                                         Text("Ajouter")
                                             .font(AppTheme.sfProRounded(size: 13, weight: .semibold))
@@ -212,7 +223,7 @@ struct DreamEditView: View {
                         }
                     }
                     .padding(AppTheme.spacing16)
-                    .padding(.bottom, AppTheme.spacing100)
+                    .padding(.bottom, 100)
                 }
                 
                 // Save button
@@ -275,6 +286,31 @@ struct DreamEditView: View {
                 customEmotions = saved
             }
         }
+    }
+    
+    private var dateFormatted: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "fr_FR")
+        formatter.dateFormat = "EEEE d MMMM yyyy"
+        return formatter.string(from: date).capitalized
+    }
+    
+    private func addCustomEmotion() {
+        let trimmed = newEmotionText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        let allEmotions = Emotion.allCases.map { $0.rawValue } + customEmotions
+        guard !allEmotions.contains(trimmed) else { return }
+        
+        customEmotions.append(trimmed)
+        selectedEmotions.insert(trimmed)
+        var saved = UserDefaults.standard.array(forKey: "customEmotions") as? [String] ?? []
+        if !saved.contains(trimmed) {
+            saved.append(trimmed)
+            UserDefaults.standard.set(saved, forKey: "customEmotions")
+        }
+        newEmotionText = ""
+        showAddEmotion = false
     }
 }
 

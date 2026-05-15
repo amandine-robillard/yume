@@ -15,6 +15,7 @@ class DreamEntryViewModel: ObservableObject {
     @Published var newEmotionText: String = ""
     @Published var showAddEmotion: Bool = false
     @Published var showDatePicker: Bool = false
+    @Published var savedDream: Dream?
     
     init(preselectedDate: Date? = nil) {
         if let preselectedDate = preselectedDate {
@@ -48,7 +49,7 @@ class DreamEntryViewModel: ObservableObject {
         guard let isRemembered = isRemembered else { return }
         
         let dream = Dream(
-            title: isRemembered ? (title.isEmpty ? "Sans titre" : title) : "Rêve oublié",
+            title: isRemembered ? (title.isEmpty ? "Rêve" : title) : "Rêve oublié",
             date: date,
             content: isRemembered ? content : "",
             isRemembered: isRemembered,
@@ -61,6 +62,7 @@ class DreamEntryViewModel: ObservableObject {
         
         do {
             try modelContext.save()
+            savedDream = dream
         } catch {
             print("Failed to save dream: \(error)")
         }

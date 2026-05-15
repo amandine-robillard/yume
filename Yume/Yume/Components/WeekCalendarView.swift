@@ -122,8 +122,13 @@ struct WeekCalendarView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .onTapGesture {
-                        onDateTap(date)
+                        // Only allow selecting current or past dates
+                        let isCurrentOrPast = !calendar.isDateInFuture(date)
+                        if isCurrentOrPast {
+                            onDateTap(date)
+                        }
                     }
+                    .opacity(calendar.isDateInFuture(date) ? 0.4 : 1.0)
                 }
             }
             .padding(.horizontal, AppTheme.spacing12)

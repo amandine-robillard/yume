@@ -150,7 +150,13 @@ struct AccueilView: View {
                 }
             }
             .sheet(isPresented: $showDreamEntry) {
-                DreamEntryView(isPresented: $showDreamEntry, preselectedDate: preselectedDate)
+                DreamEntryView(
+                    isPresented: $showDreamEntry,
+                    preselectedDate: preselectedDate,
+                    onDreamSaved: { dream in
+                        navigationPath.append(dream)
+                    }
+                )
                     .presentationDetents([.medium, .large])
             }
             .navigationDestination(for: Dream.self) { dream in

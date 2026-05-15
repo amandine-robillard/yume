@@ -136,13 +136,18 @@ struct CalendarView: View {
                                             .fill(getDotColor(for: dream))
                                             .frame(width: 6, height: 6)
                                     }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .onTapGesture {
-                                    withAnimation(.spring()) {
-                                        selectedDate = date
                                     }
-                                }
+                                    .frame(maxWidth: .infinity)
+                                    .onTapGesture {
+                                        // Only allow selecting current or past dates
+                                        let isCurrentOrPast = !calendar.isDateInFuture(date)
+                                        if isCurrentOrPast {
+                                            withAnimation(.spring()) {
+                                                selectedDate = date
+                                            }
+                                        }
+                                    }
+                                    .opacity(calendar.isDateInFuture(date) ? 0.4 : 1.0)
                             } else {
                                 Color.clear
                                     .frame(height: 40)
